@@ -166,7 +166,7 @@ def protected():
 
 # Rota para obter os dados dos livros
 @main_bp.route('/api/v1/books', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def get_books():
     """
     Obtém a lista de todos os livros
@@ -258,7 +258,7 @@ def get_books():
 
 # rota para obter um livro específico pelo ID
 @main_bp.route('/api/v1/books/<int:book_id>', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def get_book(book_id):
     """
     Busca um livro específico pelo seu ID
@@ -363,7 +363,7 @@ def get_book(book_id):
 
 # rota para buscar livros por título ou categoria
 @main_bp.route('/api/v1/books/search', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def search_books():
     """
     Pesquisa livros por título e/ou categoria
@@ -463,7 +463,7 @@ def search_books():
     return jsonify(books_list), 200
 
 @main_bp.route('/api/v1/categories', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def get_categories():
     """
     Obtém a lista de todas as categorias de livros
