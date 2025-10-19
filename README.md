@@ -189,4 +189,8 @@ flask db migrate -m "Uma breve descrição da sua mudança"
 
 # 3. Aplique a mudança ao banco de dados
 flask db upgrade
+<<<<<<< HEAD
 ```
+=======
+```
+>>>>>>> 01f2c0b3c5145e8e737f2560cce512fcafc79239
