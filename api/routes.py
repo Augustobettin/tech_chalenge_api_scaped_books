@@ -165,7 +165,7 @@ def protected():
     return jsonify({"msg": f'Logged in as user {current_user_id}'}), 200
 
 # Rota para obter os dados dos livros
-@main_bp.route('/api/v1/books', methods=['GET'])
+@main_bp.route('/books', methods=['GET'])
 #@jwt_required()
 def get_books():
     """
@@ -257,7 +257,7 @@ def get_books():
     return jsonify(books_list), 200
 
 # rota para obter um livro específico pelo ID
-@main_bp.route('/api/v1/books/<int:book_id>', methods=['GET'])
+@main_bp.route('/books/<int:book_id>', methods=['GET'])
 #@jwt_required()
 def get_book(book_id):
     """
@@ -362,7 +362,7 @@ def get_book(book_id):
     return jsonify(book_data), 200
 
 # rota para buscar livros por título ou categoria
-@main_bp.route('/api/v1/books/search', methods=['GET'])
+@main_bp.route('/books/search', methods=['GET'])
 #@jwt_required()
 def search_books():
     """
@@ -462,7 +462,7 @@ def search_books():
     } for book in books_found]
     return jsonify(books_list), 200
 
-@main_bp.route('/api/v1/categories', methods=['GET'])
+@main_bp.route('/categories', methods=['GET'])
 #@jwt_required()
 def get_categories():
     """
@@ -502,7 +502,7 @@ def get_categories():
     categories_list = [category[0] for category in categories]
     return jsonify(categories_list), 200
 
-@main_bp.route('/api/v1/health', methods=['GET'])
+@main_bp.route('/health', methods=['GET'])
 def health_check():
     """
     Verifica a saúde da API e a conexão com o banco de dados
