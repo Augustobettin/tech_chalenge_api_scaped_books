@@ -5,3 +5,5 @@ pandas
 beautifulsoup4
 Flask-SQLAlchemy
 flasgger
+psycopg2-binary
+gunicorn
