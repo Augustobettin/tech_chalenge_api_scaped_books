@@ -8,7 +8,7 @@ main_bp = Blueprint('main', __name__)
 # Rotas de usuário e autenticação
 @main_bp.route('/', methods=['GET'])
 def index():
-    return jsonify({"msg": "API de receitas"}), 200
+    return jsonify({"msg": "API de livros"}), 200
 
 @main_bp.route('/register', methods=['POST'])
 def register_user():

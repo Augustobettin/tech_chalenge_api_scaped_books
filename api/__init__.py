@@ -31,7 +31,7 @@ def create_app(config_class=Config):
     # Importa os modelos para que o SQLAlchemy saiba sobre eles
     with app.app_context():
         from . import models
-        db.create_all()
+        
 
 
     return app
