@@ -94,4 +94,60 @@ def scrape_books(pages = 50):
     df_books.to_csv(f'./data/books_{hoje}.csv', index=False)    
 
     return df_books
- 
+
+@scrape_bp.route('/scrape_books', methods=['GET'])
+def scrape_books_route():
+    """
+    Inicia o scraping dos livros e salva no banco de dados
+    ---
+    tags:
+      - "Scraping"
+    summary: "Ativa o processo de web scraping para popular o banco de dados"
+    description: |
+      Este endpoint inicia uma tarefa de web scraping no site 'books.toscrape.com' para coletar informações de 50 páginas de livros.
+      Os dados coletados são então processados e salvos na tabela de livros do banco de dados.
+
+      **Atenção:** Esta é uma operação demorada e que consome recursos. Chamar este endpoint múltiplas vezes resultará na inserção de dados duplicados no banco.
+    produces:
+      - "application/json"
+    responses:
+      "200":
+        description: "Scraping e salvamento no banco de dados concluídos com sucesso."
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Scraping concluído e 1000 livros salvos no banco de dados."
+      "500":
+        description: "Erro interno no servidor. Pode ocorrer se o site alvo estiver indisponível ou se houver uma falha na conexão com o banco de dados."
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Internal Server Error"
+    """
+    # df_books = scrape_books(pages=50)
+
+    # # Salvando os dados no banco de dados
+    # for _, row in df_books.iterrows():
+    #     book = Book(
+    #         title=row['title'],
+    #         stars=row['stars'],
+    #         category=row['category'],
+    #         image=row['image'],
+    #         upc=row['upc'],
+    #         product_type=row['product_type'],
+    #         price_excl_tax=row['price_excl_tax'],
+    #         price_incl_tax=row['price_incl_tax'],
+    #         tax=row['tax'],
+    #         availability=row['availability'],
+    #         number_of_reviews=row['number_of_reviews'],
+    #         in_stock=row['in_stock']
+    #     )
+    #     db.session.add(book)
+    
+    # db.session.commit()
+
+    return jsonify({"message": f"Rota atualmente desativada para evitar problemas com o database"})

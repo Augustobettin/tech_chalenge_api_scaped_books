@@ -1,5 +1,6 @@
 from flask import request, jsonify, Blueprint
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
+from sqlalchemy import and_ 
 
 from .models import User, Book, db
 
@@ -544,3 +545,283 @@ def health_check():
     except Exception as e:
         # Em um ambiente de produção, seria bom logar o erro 'e' aqui
         return jsonify({"status": "API está saudável", "database": "Falha na conexão"}), 500
+    
+@main_bp.route('/stats/overview', methods=['GET'])
+#@jwt_required()
+def get_overview_stats():
+    """
+    Obtém estatísticas gerais sobre os livros
+    ---
+    tags:
+      - "Estatísticas"
+    summary: "Retorna um resumo das principais métricas do acervo"
+    description: "Recupera métricas gerais sobre a coleção de livros, como o número total de livros, o preço médio e a avaliação média. Requer autenticação JWT."
+    produces:
+      - "application/json"
+    security:
+      - jwt: []
+    responses:
+      "200":
+        description: "Estatísticas gerais retornadas com sucesso."
+        schema:
+          type: object
+          properties:
+            total_books:
+              type: integer
+              example: 1000
+            average_price_incl_tax:
+              type: number
+              format: float
+              example: 35.67
+            average_stars:
+              type: number
+              format: float
+              example: 3.25
+      "401":
+        description: "Token de acesso ausente ou inválido."
+        schema:
+          type: object
+          properties:
+            msg:
+              type: string
+              example: "Missing Authorization Header"
+    """
+    total_books = db.session.query(Book).count()
+    avg_price = db.session.query(db.func.avg(Book.price_incl_tax)).scalar() or 0
+    avg_stars = db.session.query(db.func.avg(Book.stars)).scalar() or 0
+
+    stats = {
+        'total_books': total_books,
+        'average_price_incl_tax': round(avg_price, 2),
+        'average_stars': round(avg_stars, 2)
+    }
+    return jsonify(stats), 200
+
+@main_bp.route('/stats/categories', methods=['GET'])
+#@jwt_required()
+def get_category_stats():
+    """
+    Obtém estatísticas por categoria de livros
+    ---
+    tags:
+      - "Estatísticas"
+    summary: "Retorna estatísticas agrupadas por cada categoria"
+    description: "Gera um relatório detalhado para cada categoria de livro, incluindo a contagem total de livros, o preço médio e a avaliação média por categoria. Requer autenticação JWT."
+    produces:
+      - "application/json"
+    security:
+      - jwt: []
+    responses:
+      "200":
+        description: "Uma lista de objetos, onde cada objeto contém as estatísticas de uma categoria."
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+                example: "Poetry"
+              total_books:
+                type: integer
+                example: 48
+              average_price_incl_tax:
+                type: number
+                format: float
+                example: 40.31
+              average_stars:
+                type: number
+                format: float
+                example: 2.85
+      "401":
+        description: "Token de acesso ausente ou inválido."
+        schema:
+          type: object
+          properties:
+            msg:
+              type: string
+              example: "Missing Authorization Header"
+    """
+    categories = db.session.query(Book.category).distinct().all()
+    category_stats = []
+
+    for category_tuple in categories:
+        category = category_tuple[0]
+        total_books = db.session.query(Book).filter_by(category=category).count()
+        avg_price = db.session.query(db.func.avg(Book.price_incl_tax)).filter_by(category=category).scalar() or 0
+        avg_stars = db.session.query(db.func.avg(Book.stars)).filter_by(category=category).scalar() or 0
+
+        category_stats.append({
+            'category': category,
+            'total_books': total_books,
+            'average_price_incl_tax': round(avg_price, 2),
+            'average_stars': round(avg_stars, 2)
+        })
+
+    return jsonify(category_stats), 200
+
+@main_bp.route('/books/top-rated', methods=['GET'])
+#@jwt_required()
+def get_top_rated_books():
+    """
+    Obtém os 10 livros mais bem avaliados
+    ---
+    tags:
+      - "Livros"
+    summary: "Retorna uma lista dos 10 livros com as melhores avaliações"
+    description: "Busca e retorna os 10 livros que possuem a maior pontuação de estrelas (stars), em ordem decrescente. Requer autenticação JWT."
+    produces:
+      - "application/json"
+    security:
+      - jwt: []
+    responses:
+      "200":
+        description: "Uma lista dos 10 livros mais bem avaliados."
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 805
+              title:
+                type: string
+                example: "The Coming Woman: A Novel Based on the Life of the Infamous Feminist, Victoria Woodhull"
+              stars:
+                type: integer
+                example: 5
+              category:
+                type: string
+                example: "Default"
+              price_incl_tax:
+                type: number
+                format: float
+                example: 17.97
+      "401":
+        description: "Token de acesso ausente ou inválido."
+        schema:
+          type: object
+          properties:
+            msg:
+              type: string
+              example: "Missing Authorization Header"
+    """
+    top_books = db.session.query(Book).order_by(Book.stars.desc()).limit(10).all()
+    books_list = [{
+        'id': book.id,
+        'title': book.title,
+        'stars': book.stars,
+        'category': book.category,
+        'image': book.image,
+        'upc': book.upc,
+        'product_type': book.product_type,
+        'price_excl_tax': book.price_excl_tax,
+        'price_incl_tax': book.price_incl_tax,
+        'tax': book.tax,
+        'availability': book.availability,
+        'number_of_reviews': book.number_of_reviews,
+        'in_stock': book.in_stock
+    } for book in top_books]
+    return jsonify(books_list), 200
+
+@main_bp.route('/books/price-range', methods=['GET'])
+#@jwt_required()
+def get_books_in_price_range():
+    """
+    Busca livros dentro de um intervalo de preços
+    ---
+    tags:
+      - "Livros"
+    summary: "Filtra e retorna uma lista de livros por faixa de preço."
+    description: |
+      Busca livros cujo preço (`price_incl_tax`) esteja dentro do intervalo especificado pelos parâmetros `min` e `max`.
+      Ambos os parâmetros são opcionais, permitindo buscas por preço mínimo, máximo ou entre ambos. Requer autenticação JWT.
+    produces:
+      - "application/json"
+    security:
+      - jwt: []
+    parameters:
+      - in: query
+        name: min
+        type: number
+        format: float
+        required: false
+        description: "O preço mínimo (inclusivo) para a busca."
+        example: 20.00
+      - in: query
+        name: max
+        type: number
+        format: float
+        required: false
+        description: "O preço máximo (inclusivo) para a busca."
+        example: 50.00
+    responses:
+      "200":
+        description: "Uma lista de livros que correspondem ao intervalo de preço. Pode retornar uma lista vazia se nada for encontrado."
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              title:
+                type: string
+              price_incl_tax:
+                type: number
+                format: float
+      "400":
+        description: "Requisição inválida. Ocorre se os parâmetros de preço não forem números válidos."
+        schema:
+          type: object
+          properties:
+            msg:
+              type: string
+              example: "Erro: os parâmetros de preço devem ser números válidos."
+      "401":
+        description: "Token de acesso ausente ou inválido."
+        schema:
+          type: object
+          properties:
+            msg:
+              type: string
+              example: "Missing Authorization Header"
+    """
+    # --- CORREÇÃO APLICADA AQUI ---
+    min_price_str = request.args.get('min') # Alterado de 'min_price' para 'min'
+    max_price_str = request.args.get('max') # Alterado de 'max_price' para 'max'
+    
+    filters = []
+
+    try:
+        if min_price_str:
+            min_price = float(min_price_str)
+            filters.append(Book.price_incl_tax >= min_price)
+
+        if max_price_str:
+            max_price = float(max_price_str)
+            filters.append(Book.price_incl_tax <= max_price)
+
+    except (ValueError, TypeError):
+        return jsonify({"msg": "Erro: os parâmetros de preço devem ser números válidos."}), 400
+
+    books_found = db.session.query(Book).filter(and_(*filters)).all()
+    
+    books_list = [{
+        'id': book.id,
+        'title': book.title,
+        'stars': book.stars,
+        'category': book.category,
+        'image': book.image,
+        'upc': book.upc,
+        'product_type': book.product_type,
+        'price_excl_tax': book.price_excl_tax,
+        'price_incl_tax': book.price_incl_tax,
+        'tax': book.tax,
+        'availability': book.availability,
+        'number_of_reviews': book.number_of_reviews,
+        'in_stock': book.in_stock
+    } for book in books_found]
+    
+    return jsonify(books_list), 200
