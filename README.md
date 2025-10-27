@@ -1,6 +1,14 @@
 # Tech Challenge API Scraped Books
 
+## Links de Acesso
+
+-   **API em Produção (Render):** [https://tech-chalenge-api-scaped-books.onrender.com](https://tech-chalenge-api-scaped-books.onrender.com)
+-   **Vídeo de Demonstração (YouTube):** [https://youtu.be/iQW-U-nkRgM](https://youtu.be/iQW-U-nkRgM)
+
+---
 ## Descrição do Projeto e Arquitetura
+
+![Arquitetura Atual](arquitetura_atual.png)
 
 Este projeto consiste em uma API RESTful desenvolvida em Flask para gerenciar uma coleção de livros obtidos através de web scraping do site 'books.toscrape.com'. A arquitetura da aplicação segue uma estrutura modular, separando a lógica da aplicação, rotas, modelos de banco de dados e configurações em diferentes arquivos, promovendo um código mais limpo e de fácil manutenção.
 
