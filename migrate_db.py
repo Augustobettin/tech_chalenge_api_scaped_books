@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 # --- CONFIGURAÇÃO ---
 # Cole aqui a URL de conexão EXTERNA do seu banco de dados no Render
-POSTGRES_URL = "postgresql://livros_db_pl7h_user:6Zuh8WHPR5Loq8ivTd7Z20voqY5z6Dtw@dpg-d3r67jodl3ps73ceqalg-a.oregon-postgres.render.com/livros_db_pl7h"
+POSTGRES_URL = input("Por favor, insira a URL de conexão do banco de dados no Render (PostgreSQL): ")
 
 # Caminho para o seu arquivo de banco de dados SQLite local
 SQLITE_DB_PATH = 'instance/livros.db'
